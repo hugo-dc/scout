@@ -64,7 +64,7 @@ impl<'a> Externals for Runtime<'a> {
             }
             LOADPRESTATEROOT_FUNC_INDEX => {
                 let ptr: u32 = args.nth(0);
-                println!("loadprestateroot to {}", ptr);
+//                println!("loadprestateroot to {}", ptr);
 
                 // TODO: add checks for out of bounds access
                 let memory = self.memory.as_ref().expect("expects memory");
@@ -74,7 +74,7 @@ impl<'a> Externals for Runtime<'a> {
             }
             SAVEPOSTSTATEROOT_FUNC_INDEX => {
                 let ptr: u32 = args.nth(0);
-                println!("savepoststateroot from {}", ptr);
+//                println!("savepoststateroot from {}", ptr);
 
                 // TODO: add checks for out of bounds access
                 let memory = self.memory.as_ref().expect("expects memory");
@@ -84,17 +84,17 @@ impl<'a> Externals for Runtime<'a> {
             }
             BLOCKDATASIZE_FUNC_INDEX => {
                 let ret: i32 = self.block_data.data.len() as i32;
-                println!("blockdatasize {}", ret);
+//                println!("blockdatasize {}", ret);
                 Ok(Some(ret.into()))
             }
             BLOCKDATACOPY_FUNC_INDEX => {
                 let ptr: u32 = args.nth(0);
                 let offset: u32 = args.nth(1);
                 let length: u32 = args.nth(2);
-                println!(
-                    "blockdatacopy to {} from {} for {} bytes",
-                    ptr, offset, length
-                );
+//                println!(
+//                    "blockdatacopy to {} from {} for {} bytes",
+//                    ptr, offset, length
+//                );
 
                 // TODO: add overflow check
                 let offset = offset as usize;
@@ -210,11 +210,11 @@ pub fn execute_code(
     pre_state: &Bytes32,
     block_data: &ShardBlockBody,
 ) -> (Bytes32, Vec<Deposit>) {
-    println!(
-        "Executing codesize({}) and data: {:#?}",
-        code.len(),
-        block_data
-    );
+//    println!(
+//        "Executing codesize({}) and data: {:#?}",
+//        code.len(),
+//        block_data
+//    );
 
     let module = Module::from_buffer(&code).unwrap();
     let mut imports = ImportsBuilder::new();
@@ -240,8 +240,8 @@ pub fn execute_code(
         .invoke_export("main", &[], &mut runtime)
         .expect("Executed 'main'");
 
-    println!("Result: {:?}", result);
-    println!("Execution finished");
+//    println!("Result: {:?}", result);
+//    println!("Execution finished");
 
     (runtime.get_post_state(), vec![Deposit {}])
 }
@@ -252,9 +252,9 @@ pub fn process_shard_block(
     block: Option<ShardBlock>,
 ) {
     // println!("Beacon state: {:#?}", beacon_state);
-    println!("Executing block: {:#?}", block);
+//    println!("Executing block: {:#?}", block);
 
-    println!("Pre-execution: {:#?}", state);
+//    println!("Pre-execution: {:#?}", state);
 
     // TODO: implement state root handling
 
@@ -274,7 +274,7 @@ pub fn process_shard_block(
 
     // TODO: implement state + deposit root handling
 
-    println!("Post-execution: {:#?}", state)
+//    println!("Post-execution: {:#?}", state)
 }
 
 fn load_file(filename: &str) -> Vec<u8> {
@@ -353,10 +353,10 @@ impl From<TestShardState> for ShardState {
 }
 
 fn process_yaml_test(filename: &str) {
-    println!("Process yaml!");
+//    println!("Process yaml!");
     let content = load_file(&filename);
     let test_file: TestFile = serde_yaml::from_slice::<TestFile>(&content[..]).unwrap();
-    println!("{:#?}", test_file);
+//    println!("{:#?}", test_file);
 
     let beacon_state: BeaconState = test_file.beacon_state.into();
     let pre_state: ShardState = test_file.shard_pre_state.into();
@@ -366,11 +366,26 @@ fn process_yaml_test(filename: &str) {
     for block in test_file.shard_blocks {
         process_shard_block(&mut shard_state, &beacon_state, Some(block.into()))
     }
-    println!("{:#?}", shard_state);
+//    println!("{:#?}", shard_state);
     assert_eq!(shard_state, post_state);
 }
 
-fn main() {
+
+#[macro_use]
+extern crate criterion;
+
+use criterion::Criterion;
+use criterion::black_box;
+
+fn criterion_benchmark(c: &mut Criterion) {
+    c.bench_function("test", |b| b.iter(|| process_yaml_test("bazaar.yaml")));
+}
+
+criterion_group!(benches, criterion_benchmark);
+criterion_main!(benches);
+
+
+fn main_old() {
     let args: Vec<String> = env::args().collect();
     process_yaml_test(if args.len() != 2 {
         "test.yaml"
