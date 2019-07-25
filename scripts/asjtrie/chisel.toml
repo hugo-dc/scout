@@ -1,0 +1,9 @@
+asjtrie:
+  file: "build/optimized.wasm"
+  output: "build/otpimized.wasm"
+  trimexports:
+    preset: "ewasm"
+  verifyexports:
+    preset: "ewasm"
+  repack:
+    preset: "ewasm"
