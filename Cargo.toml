@@ -13,3 +13,4 @@ wasmi = "0.4.2"
 rustc-hex = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
+bigint = "4.4.1"

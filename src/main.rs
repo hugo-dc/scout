@@ -11,6 +11,7 @@ use wasmi::{
     MemoryRef, Module, ModuleImportResolver, ModuleInstance, NopExternals, RuntimeArgs,
     RuntimeValue, Signature, Trap, TrapKind, ValueType,
 };
+use bigint::uint::U256;
 
 mod types;
 use crate::types::*;
@@ -21,6 +22,17 @@ const BLOCKDATACOPY_FUNC_INDEX: usize = 2;
 const SAVEPOSTSTATEROOT_FUNC_INDEX: usize = 3;
 const PUSHNEWDEPOSIT_FUNC_INDEX: usize = 4;
 const USETICKS_FUNC_INDEX: usize = 5;
+const SETBIGNUMSTACK_FUNC_INDEX: usize = 6;
+const SETMEMPTR_FUNC_INDEX: usize = 7;
+const ADD256_FUNC_INDEX: usize = 8;
+const MUL256_FUNC_INDEX: usize = 9;
+const LOG_FUNC_INDEX: usize = 10;
+
+static mut BignumStackOffset: u32 = 0;     // EVM
+static mut EVMMemoryStartOffset: u32 = 0;  // EVM
+
+// Use GlobalInstance/GlobalRef?
+// static mut BignumStackTop: u32 = 0;
 
 struct Runtime<'a> {
     ticks_left: u32,
@@ -122,6 +134,75 @@ impl<'a> Externals for Runtime<'a> {
                 Ok(None)
             }
             PUSHNEWDEPOSIT_FUNC_INDEX => unimplemented!(),
+            SETBIGNUMSTACK_FUNC_INDEX => {
+                let startData: u32 = args.nth(0);
+                unsafe {
+                    BignumStackOffset = startData;
+                }
+
+                Ok(None)
+            }
+            SETMEMPTR_FUNC_INDEX => {
+                let startData: u32 = args.nth(0);
+
+                unsafe {
+                    EVMMemoryStartOffset = startData;
+                }
+
+                Ok(None)
+            }
+            ADD256_FUNC_INDEX => {
+                let mut BignumStackTop: u32 = args.nth(0);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let mut a_pos: u32 = 0;
+                let mut b_pos: u32 = 0;
+                unsafe {
+                    a_pos = BignumStackOffset + 32 * (BignumStackTop - 1);
+                    b_pos = BignumStackOffset + 32 * (BignumStackTop - 2);
+                }
+
+                let mut bytes_a: [u8;32] = [0;32];
+                let mut bytes_b: [u8;32] = [0;32];
+                memory
+                    .get_into(a_pos, &mut bytes_a)
+                    .expect("expects reading from memory to succeed");
+                memory
+                    .get_into(b_pos, &mut bytes_b)
+                    .expect("expects reading from memory to succeed");
+
+                let elem_a = U256::from_little_endian(&bytes_a[..]);
+                let elem_b = U256::from_little_endian(&bytes_b[..]);
+
+                let result = elem_a + elem_b;
+
+                let mut bytes_result: [u8;32] = [0;32];
+                result.to_little_endian(&mut bytes_result);
+
+                memory
+                    .set(b_pos, &bytes_result)
+                    .expect("expects writing to memory to succeed");
+
+                BignumStackTop = BignumStackTop - 1;
+
+                Ok(Some(BignumStackTop.into())) // Return StackTop
+            }
+            MUL256_FUNC_INDEX => {
+                let mut BignumStackTop: u32 = args.nth(0);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let mut a_pos: u32 = 0;
+                let mut b_pos: u32 = 0;
+
+                unsafe {
+                    
+                }
+
+                Ok(None)
+            }
+            LOG_FUNC_INDEX => {
+                let value: u32 = args.nth(0);
+                println!("> {}", value);
+                Ok(None)
+            }
             _ => panic!("unknown function index"),
         }
     }
@@ -159,6 +240,22 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
             "eth2_pushNewDeposit" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], None),
                 PUSHNEWDEPOSIT_FUNC_INDEX,
+            ),
+            "eth2_setBignumStack" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], None),
+                SETBIGNUMSTACK_FUNC_INDEX,
+            ),
+            "eth2_setMemoryPtr" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], None),
+                SETMEMPTR_FUNC_INDEX,
+            ),
+            "eth2_add256" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
+                ADD256_FUNC_INDEX,
+            ),
+            "eth2_log" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], None),
+                LOG_FUNC_INDEX,
             ),
             _ => {
                 return Err(InterpreterError::Function(format!(
