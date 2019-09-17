@@ -27,7 +27,8 @@ const SETBIGNUMSTACK_FUNC_INDEX: usize = 6;
 const SETMEMPTR_FUNC_INDEX: usize = 7;
 const ADD256_FUNC_INDEX: usize = 8;
 const MUL256_FUNC_INDEX: usize = 9;
-const LOG_FUNC_INDEX: usize = 10;
+const LT256_FUNC_INDEX: usize = 10;
+const LOG_FUNC_INDEX: usize = 11;
 
 static mut BignumStackOffset: u32 = 0;     // EVM
 static mut EVMMemoryStartOffset: u32 = 0;  // EVM
@@ -171,18 +172,10 @@ impl<'a> Externals for Runtime<'a> {
                     .get_into(b_pos, &mut bytes_b)
                     .expect("expects reading from memory to succeed");
 
-                //let elem_a = U256::from_little_endian(&bytes_a[..]);
                 let elem_a = U256::from(bytes_a);
                 let elem_b = U256::from(bytes_b);
-                //let elem_b = U256::from_little_endian(&bytes_b[..]);
 
                 let result = elem_a + elem_b;
-                //let result = elem_a.sum(elem_b);
-
-                println!("elem a: {}", elem_a);
-                println!("elem b: {}", elem_b);
-                println!("result: {}", result);
-
 
                 let mut bytes_result: [u8;32] = [0;32];
                 result.to_little_endian(&mut bytes_result);
@@ -216,20 +209,10 @@ impl<'a> Externals for Runtime<'a> {
                     .get_into(b_pos, &mut bytes_b)
                     .expect("expects reading from memory to succeed");
 
-                //let elem_a = U256::from_little_endian(&bytes_a[..]);
-                //let elem_b = U256::from_little_endian(&bytes_b[..]);
                 let elem_a = U256::from(bytes_a);
                 let elem_b = U256::from(bytes_b);
 
                 let result: U256 = elem_a * elem_b;
-                //let result = elem_a.mul(elem_b);
-
-                //let result = elem_a.saturating_mul(elem_b);
-                //let result = elem_a.checked_mul(elem_b).unwrap();
-
-                println!("elem a: {}", elem_a);
-                println!("elem b: {}", elem_b);
-                println!("result: {:?}", result);
 
                 let mut bytes_result: [u8; 32] = [0; 32];
                 result.to_little_endian(&mut bytes_result);
@@ -241,9 +224,47 @@ impl<'a> Externals for Runtime<'a> {
                 BignumStackTop = BignumStackTop - 1;
                 Ok(Some(BignumStackTop.into()))
             }
+            LT256_FUNC_INDEX => {
+                let mut BignumStackTop: u32 = args.nth(0);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let mut a_pos: u32 = 0;
+                let mut b_pos: u32 = 0;
+
+                unsafe {
+                    a_pos = BignumStackOffset + 32 * (BignumStackTop - 1);
+                    b_pos = BignumStackOffset + 32 * (BignumStackTop - 2);
+                }
+
+                let mut bytes_a: [u8; 32] = [0; 32];
+                let mut bytes_b: [u8; 32] = [0; 32];
+
+                memory
+                    .get_into(a_pos, &mut bytes_a)
+                    .expect("expects reading from memory to succeed");
+                memory
+                    .get_into(b_pos, &mut bytes_b)
+                    .expect("expects reading from memory to succeed");
+
+                let elem_a = U256::from(bytes_a);
+                let elem_b = U256::from(bytes_b);
+
+                let mut result = U256::from(0);
+                if elem_a < elem_b {
+                    result = U256::from(1);
+                }
+
+                let mut bytes_result: [u8; 32] = [0; 32];
+                result.to_little_endian(&mut bytes_result);
+
+                memory
+                    .set(b_pos, &bytes_result)
+                    .expect("expects writing to memory to succeed");
+
+                Ok(Some(BignumStackTop.into()))
+            }
             LOG_FUNC_INDEX => {
                 let value: u32 = args.nth(0);
-                println!("> {}", value);
+                println!(">>> eth2_log: {}", value);
                 Ok(None)
             }
             _ => panic!("unknown function index"),
@@ -299,6 +320,10 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
             "eth2_mul256" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
                 MUL256_FUNC_INDEX,
+            ),
+            "eth2_lt256" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
+                LT256_FUNC_INDEX,
             ),
             "eth2_log" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], None),
