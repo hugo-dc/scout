@@ -28,13 +28,11 @@ const SETMEMPTR_FUNC_INDEX: usize = 7;
 const ADD256_FUNC_INDEX: usize = 8;
 const MUL256_FUNC_INDEX: usize = 9;
 const LT256_FUNC_INDEX: usize = 10;
-const LOG_FUNC_INDEX: usize = 11;
+const JUMPI_FUNC_INDEX: usize = 11;
+const LOG_FUNC_INDEX: usize = 12;
 
 static mut BignumStackOffset: u32 = 0;     // EVM
 static mut EVMMemoryStartOffset: u32 = 0;  // EVM
-
-// Use GlobalInstance/GlobalRef?
-// static mut BignumStackTop: u32 = 0;
 
 struct Runtime<'a> {
     ticks_left: u32,
@@ -262,6 +260,42 @@ impl<'a> Externals for Runtime<'a> {
 
                 Ok(Some(BignumStackTop.into()))
             }
+            JUMPI_FUNC_INDEX => {
+                let bn_stack_top: u32 = args.nth(0);
+                let pc: i32 = args.nth(1);
+
+
+                let memory = self.memory.as_ref().expect("expects memory object");
+
+                let mut cond_pos: u32 = 0;
+                let mut dest_pos: u32 = 0;
+
+                unsafe {
+                    cond_pos = BignumStackOffset + 32 * (bn_stack_top - 1);
+                    dest_pos = BignumStackOffset + 32 * (bn_stack_top - 2);
+                }
+
+                let mut bytes_cond: [u8; 32] = [0; 32];
+                let mut bytes_dest: [u8; 32] = [0; 32];
+
+                memory
+                    .get_into(cond_pos, &mut bytes_cond)
+                    .expect("expects reading from memory to succeed");
+                memory
+                    .get_into(dest_pos, &mut bytes_dest)
+                    .expect("expects reading from memory to succeed");
+
+                let cond = U256::from(bytes_cond);
+
+                if cond != U256::from(0) {
+                    let mut dest_arr: [u8; 4] = Default::default();
+                    dest_arr.copy_from_slice(&bytes_dest[28..32]);
+                    let dest = i32::from_be_bytes(dest_arr);
+                    Ok(Some(dest.into()))
+                } else {
+                    Ok(Some(pc.into()))
+                }
+            }
             LOG_FUNC_INDEX => {
                 let value: u32 = args.nth(0);
                 println!(">>> eth2_log: {}", value);
@@ -324,6 +358,11 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
             "eth2_lt256" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
                 LT256_FUNC_INDEX,
+            ),
+            "eth2_jumpi" => FuncInstance::alloc_host(
+                //Signature::new(&[ValueType::I32, ValueType::I32][..], Some(ValueType::I32)),
+                Signature::new(&[ValueType::I32, ValueType::I32][..], Some(ValueType::I32)),
+                JUMPI_FUNC_INDEX,
             ),
             "eth2_log" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], None),

@@ -31,6 +31,8 @@ export declare function eth2_mul256(stackTop: u32): u32;
 @external("env", "eth2_lt256")
 export declare function eth2_lt256(stackTop: u32): u32;
 
+@external("env", "eth2_jumpi")
+export declare function eth2_jumpi(stackTop: u32, pc: i32): u32;
 
 export function main(): void {
   // bignum stack size is 100 elements
@@ -59,15 +61,13 @@ export function main(): void {
     MemoryElements[i] = Uint8Array.wrap(Memory, i * MemoryElementSize, 16)
   }
 
-  //@global
-  //export let BignumStackTop: i32 = 0
   let BignumStackTop: i32 = 0
 
   // TODO: pass the byte code in calldata
   // EVM Bytecode
   // (+ 128 64) => 192 (0xc0)
   // (* 128 64) => 8192 (0x2000)
-  let code_array: u8[] = [96, 128, 96, 64, 82]
+  let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87]
   //let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87, 124, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 96, 0, 53, 4, 99, 38, 188, 235, 89, 129, 20, 97, 0, 63, 87, 91, 96, 0, 128, 253, 91, 52, 128, 21, 97, 0, 75, 87, 96, 0, 128, 253, 91, 80, 97, 0, 111, 96, 4, 128, 54, 3, 96, 64, 129, 16, 21, 97, 0, 98, 87, 96, 0, 128, 253, 91, 80, 128, 53, 144, 96, 32, 1, 53, 97, 0, 129, 86, 91, 96, 64, 128, 81, 145, 130, 82, 81, 144, 129, 144, 3, 96, 32, 1, 144, 243, 91, 96, 0, 128, 91, 97, 39, 16, 129, 16, 21, 97, 1, 25, 87, 146, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 146, 96, 1, 1, 97, 0, 133, 86, 91, 80, 145, 146, 145, 80, 80, 86, 254, 161, 101, 98, 122, 122, 114, 48, 88, 32, 241, 119, 162, 139, 221, 145, 28, 48, 80, 232, 56, 92, 67, 2, 134, 171, 233, 224, 172, 166, 56, 129, 39, 238, 224, 11, 209, 57, 97, 172, 186, 106, 0, 41]
 
   const stop: u8 = 0x00
@@ -294,7 +294,6 @@ export function main(): void {
 
       BignumStackTop++
 
-      eth2_log(data_size)
       break
 
       /*
@@ -335,11 +334,10 @@ export function main(): void {
       pc = dest
       break
       */
-      /*
     case jumpi: // 0x57
-      pc = calculatePC(pc)
+      pc = eth2_jumpi(BignumStackTop, pc)
+      BignumStackTop = BignumStackTop - 2
       break
-      */
       /*
     case jumpdest: // 0x5b
       break
