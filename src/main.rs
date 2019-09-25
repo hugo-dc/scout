@@ -258,6 +258,8 @@ impl<'a> Externals for Runtime<'a> {
                     .set(b_pos, &bytes_result)
                     .expect("expects writing to memory to succeed");
 
+                BignumStackTop = BignumStackTop - 1;
+
                 Ok(Some(BignumStackTop.into()))
             }
             JUMPI_FUNC_INDEX => {

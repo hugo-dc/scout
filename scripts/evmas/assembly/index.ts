@@ -67,7 +67,8 @@ export function main(): void {
   // EVM Bytecode
   // (+ 128 64) => 192 (0xc0)
   // (* 128 64) => 8192 (0x2000)
-  let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87]
+  let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87, 124, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 096, 0, 128, 253, 91, 52, 128, 21, 97, 0, 75, 87, 96, 0, 128, 253, 91, 80, 97, 0, 111, 96, 4, 128, 54, 3, 96, 64, 129, 16, 21, 97, 0, 98, 87, 96, 0, 128, 253, 91, 80, 128, 53, 144, 96, 32, 1, 53, 97, 0, 129, 86, 91, 96, 64, 128, 81, 145, 130, 82, 81, 144, 129, 144, 3, 96, 32, 1, 144, 243, 91, 96, 0, 128, 91, 97, 39, 16, 129, 16, 21, 97, 1, 25, 87, 146, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 146, 96, 1, 1, 97, 0, 133, 86, 91, 80, 145, 146, 145, 80, 80, 86, 254, 161, 101, 98, 122, 122, 114, 48, 88, 32, 241, 119, 162, 139, 221, 145, 28, 48, 80, 232, 56, 92, 67, 2, 134, 171, 233, 224, 172, 166, 56, 129, 39, 238, 224, 11, 209, 57, 97, 172, 186, 106, 0, 41]
+  
   //let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87, 124, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 96, 0, 53, 4, 99, 38, 188, 235, 89, 129, 20, 97, 0, 63, 87, 91, 96, 0, 128, 253, 91, 52, 128, 21, 97, 0, 75, 87, 96, 0, 128, 253, 91, 80, 97, 0, 111, 96, 4, 128, 54, 3, 96, 64, 129, 16, 21, 97, 0, 98, 87, 96, 0, 128, 253, 91, 80, 128, 53, 144, 96, 32, 1, 53, 97, 0, 129, 86, 91, 96, 64, 128, 81, 145, 130, 82, 81, 144, 129, 144, 3, 96, 32, 1, 144, 243, 91, 96, 0, 128, 91, 97, 39, 16, 129, 16, 21, 97, 1, 25, 87, 146, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 146, 96, 1, 1, 97, 0, 133, 86, 91, 80, 145, 146, 145, 80, 80, 86, 254, 161, 101, 98, 122, 122, 114, 48, 88, 32, 241, 119, 162, 139, 221, 145, 28, 48, 80, 232, 56, 92, 67, 2, 134, 171, 233, 224, 172, 166, 56, 129, 39, 238, 224, 11, 209, 57, 97, 172, 186, 106, 0, 41]
 
   const stop: u8 = 0x00
@@ -122,7 +123,6 @@ export function main(): void {
     let opcode: u8 = code_array[pc]
     pc++
 
-    eth2_log(opcode)
     switch (opcode) {
     case push1: // 0x60
       let push_val = code_array[pc]
@@ -138,6 +138,7 @@ export function main(): void {
       break
 
     case push2: // 0x61
+      eth2_log(222)
       let push_val1 = code_array[pc]
       pc++
       let push_val2 = code_array[pc]
@@ -183,6 +184,7 @@ export function main(): void {
       BignumStackTop++
       break
     case add: // 0x01
+      eth2_log(333)
       BignumStackTop = eth2_add256(BignumStackTop)
       //let result_slot = BignumStackElements[BignumStackTop - 1]
       //let result = result_slot[31]
@@ -190,6 +192,7 @@ export function main(): void {
       //eth2_log(result)
       break
     case mul: // 0x02
+      eth2_log(444)
       BignumStackTop = eth2_mul256(BignumStackTop)
 
       //let result_slot = BignumStackElements[BignumStackTop - 1]
@@ -239,6 +242,7 @@ export function main(): void {
       break
       */
     case mstore: // 0x52
+      eth2_log(555)
       // pop memid
       BignumStackTop--
       let memid_slot = BignumStackElements[BignumStackTop]
@@ -287,6 +291,7 @@ export function main(): void {
       */
 
     case calldatasize: // 0x36
+      eth2_log(666)
       let data_size = eth2_blockDataSize()
 
       let stack_slot = BignumStackElements[BignumStackTop]
@@ -302,6 +307,7 @@ export function main(): void {
       */
 
     case lt:      // 0x10
+      eth2_log(777)
       BignumStackTop = eth2_lt256(BignumStackTop)
       break
 
@@ -310,11 +316,20 @@ export function main(): void {
       eqFunc()
       break
       */
-      /*
     case iszero: // 0x15
-      isZeroFunc()
+      eth2_log(888)
+      let result_pos = BignumStackElements[BignumStackTop]
+      let elem_pos = BignumStackElements[BignumStackTop - 1]
+
+      result_pos.fill(0, 0, 32)
+
+      for (let i = 0; i < 32; i++) {
+        if (elem_pos[i] != 0) {
+          result_pos[31] = 1
+          break
+        }
+      }
       break
-      */
       /*
     case opnot: // 0x19
       notFunc()
@@ -335,6 +350,7 @@ export function main(): void {
       break
       */
     case jumpi: // 0x57
+      eth2_log(999)
       pc = eth2_jumpi(BignumStackTop, pc)
       BignumStackTop = BignumStackTop - 2
       break
@@ -356,8 +372,8 @@ export function main(): void {
       BignumStackTop++
       break
       */
-      /*
     case dup2:  // 0x81
+      eth2_log(101010)
       // get value
       let value_slot = BignumStackElements[BignumStackTop - 2]
 
@@ -369,7 +385,6 @@ export function main(): void {
 
       BignumStackTop++
       break
-      */
       /*
     case dup3:  // 0x82
       // get value
