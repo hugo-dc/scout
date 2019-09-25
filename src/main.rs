@@ -273,8 +273,8 @@ impl<'a> Externals for Runtime<'a> {
                 let mut dest_pos: u32 = 0;
 
                 unsafe {
-                    cond_pos = BignumStackOffset + 32 * (bn_stack_top - 1);
-                    dest_pos = BignumStackOffset + 32 * (bn_stack_top - 2);
+                    dest_pos = BignumStackOffset + 32 * (bn_stack_top - 1);
+                    cond_pos = BignumStackOffset + 32 * (bn_stack_top - 2);
                 }
 
                 let mut bytes_cond: [u8; 32] = [0; 32];
