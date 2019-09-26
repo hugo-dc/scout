@@ -274,16 +274,14 @@ export function main(): void {
       }
 
       break
-      /*
     case callvalue: // 0x34
-      let call_value = getcallvalue()
+      let call_value = 0 
 
       let stack_slot = BignumStackElements[BignumStackTop]
       stack_slot[31] = call_value
 
       BignumStackTop++
       break
-      */
     case calldataload: // 0x35
       // pop position
       BignumStackTop--
