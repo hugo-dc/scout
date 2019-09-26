@@ -77,7 +77,6 @@ export function main(): void {
 
   let evm_bytecode = Uint8Array.wrap(evm_bytecode_buff, 0, bc_size)
 
-  /*
   // get data size
   let data_size_offset = 4 + bc_size
   let dt_size_ptr: usize = __alloc(4, 0)
@@ -85,11 +84,8 @@ export function main(): void {
   let dt_size: i32 = load<i32>(dt_size_ptr)
   eth2_log(dt_size)
   
-  // get data
-  let data_ptr: usize = __alloc(dt_size, 0)
+  // get data offset
   let data_offset = data_size_offset + 4
-  eth2_blockDataCopy(data_ptr, data_offset, data_offset + dt_size)
-  */
   
   const stop: u8 = 0x00
   const add: u8 = 0x01
@@ -299,16 +295,27 @@ export function main(): void {
       BignumStackTop++
       break
       */
-      /*
     case calldataload: // 0x35
       // pop position
       BignumStackTop--
       let pos_slot = BignumStackElements[BignumStackTop]
       let pos = pos_slot[31]
 
-      getcalldata(pos)
+      let data_ptr: usize = __alloc(32, 0)
+      eth2_blockDataCopy(data_ptr, data_offset + pos, data_offset + pos + 32)
+
+      let data_buff = new ArrayBuffer(32)
+      memory.copy((data_buff as usize), data_ptr, 32)
+      let data = Uint8Array.wrap(data_buff, 0, 32)
+
+      let stack_slot = BignumStackElements[BignumStackTop]
+      for (let i = 0; i < 32; i++) {
+        stack_slot[i] = data[i]
+      }
+      
+      BignumStackTop++
+
       break
-      */
 
     case calldatasize: // 0x36
       eth2_log(666)
@@ -522,6 +529,7 @@ export function main(): void {
     default:
       pc = evm_bytecode.length  // unknown opcode, finish execution
       eth2_log(31337)
+      eth2_log(opcode)
       break
     }
   }
