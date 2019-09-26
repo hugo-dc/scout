@@ -227,7 +227,6 @@ export function main(): void {
     case pop: // 0x50
       BignumStackTop--
       break
-      /*
     case mload: // 0x51
       // pop memid
       let memid_slot = BignumStackElements[BignumStackTop - 1]
@@ -245,7 +244,6 @@ export function main(): void {
       stack_slot[31] = value
 
       break
-      */
     case mstore: // 0x52
       // pop memid
       BignumStackTop--
@@ -404,7 +402,6 @@ export function main(): void {
 
       BignumStackTop++
       break
-      /*
     case dup3:  // 0x82
       // get value
       let value_slot = BignumStackElements[BignumStackTop - 3]
@@ -417,7 +414,6 @@ export function main(): void {
 
       BignumStackTop++
       break
-      */
     case swap1: // 0x90
       // get stack top
       let top_slot = BignumStackElements[BignumStackTop - 1]
@@ -484,7 +480,6 @@ export function main(): void {
       }
 
       break
-      /*
     case opreturn:  // 0xf3
       // pop offset
       let offset_slot = BignumStackElements[BignumStackTop - 1]
@@ -500,7 +495,6 @@ export function main(): void {
       finish(mem_slot.dataStart, length)
       pc = code_array.length // finish execution
       break
-      */
     case revert: // 0xfd
       pc = evm_bytecode.length      // finish execution
       break
