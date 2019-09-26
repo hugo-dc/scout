@@ -28,6 +28,9 @@ export declare function eth2_add256(stackTop: u32): u32;
 @external("env", "eth2_mul256")
 export declare function eth2_mul256(stackTop: u32): u32;
 
+@external("env", "eth2_sub256")
+export declare function eth2_sub256(stackTop: u32): u32;
+
 @external("env", "eth2_lt256")
 export declare function eth2_lt256(stackTop: u32): u32;
 
@@ -207,11 +210,9 @@ export function main(): void {
     case mul: // 0x02
       BignumStackTop = eth2_mul256(BignumStackTop)
       break
-      /*
     case sub: // 0x03
-      sub256()
+      BignumStackTop = eth2_sub256(BignumStackTop)
       break
-      */
     case div: // 0x04
       BignumStackTop = eth2_div256(BignumStackTop)
       

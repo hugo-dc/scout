@@ -27,10 +27,11 @@ const SETBIGNUMSTACK_FUNC_INDEX: usize = 6;
 const SETMEMPTR_FUNC_INDEX: usize = 7;
 const ADD256_FUNC_INDEX: usize = 8;
 const MUL256_FUNC_INDEX: usize = 9;
-const LT256_FUNC_INDEX: usize = 10;
-const DIV256_FUNC_INDEX: usize = 11;
-const JUMPI_FUNC_INDEX: usize = 12;
-const LOG_FUNC_INDEX: usize = 13;
+const SUB256_FUNC_INDEX: usize = 10;
+const LT256_FUNC_INDEX: usize = 11;
+const DIV256_FUNC_INDEX: usize = 12;
+const JUMPI_FUNC_INDEX: usize = 13;
+const LOG_FUNC_INDEX: usize = 14;
 
 static mut BignumStackOffset: u32 = 0;     // EVM
 static mut EVMMemoryStartOffset: u32 = 0;  // EVM
@@ -223,6 +224,42 @@ impl<'a> Externals for Runtime<'a> {
                 BignumStackTop = BignumStackTop - 1;
                 Ok(Some(BignumStackTop.into()))
             }
+            SUB256_FUNC_INDEX => {
+                let mut BignumStackTop: u32 = args.nth(0);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let mut a_pos: u32 = 0;
+                let mut b_pos: u32 = 0;
+
+                unsafe {
+                    a_pos = BignumStackOffset + 32 * (BignumStackTop - 1);
+                    b_pos = BignumStackOffset + 32 * (BignumStackTop - 2);
+                }
+
+                let mut bytes_a: [u8; 32] = [0; 32];
+                let mut bytes_b: [u8; 32] = [0; 32];
+
+                memory
+                    .get_into(a_pos, &mut bytes_a)
+                    .expect("expects reading from memory to succeed");
+                memory
+                    .get_into(b_pos, &mut bytes_b)
+                    .expect("expects reading from memory to succeed");
+
+                let elem_a = U256::from(bytes_a);
+                let elem_b = U256::from(bytes_b);
+
+                let result: U256 = elem_a - elem_b;
+
+                let mut bytes_result: [u8; 32] = [0; 32];
+                result.to_little_endian(&mut bytes_result);
+
+                memory
+                    .set(b_pos, &bytes_result)
+                    .expect("expects writing to memory to succeed");
+
+                BignumStackTop = BignumStackTop - 1;
+                Ok(Some(BignumStackTop.into()))                
+            }
             LT256_FUNC_INDEX => {
                 let mut BignumStackTop: u32 = args.nth(0);
                 let memory = self.memory.as_ref().expect("expects memory object");
@@ -394,6 +431,10 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
             "eth2_mul256" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
                 MUL256_FUNC_INDEX,
+            ),
+            "eth2_sub256" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
+                SUB256_FUNC_INDEX,
             ),
             "eth2_lt256" => FuncInstance::alloc_host(
                 Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
