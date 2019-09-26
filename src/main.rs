@@ -218,7 +218,7 @@ impl<'a> Externals for Runtime<'a> {
                 let result = elem_a + elem_b;
 
                 let mut bytes_result: [u8;32] = [0;32];
-                result.to_little_endian(&mut bytes_result);
+                result.to_big_endian(&mut bytes_result);
 
                 memory
                     .set(b_pos, &bytes_result)
@@ -255,7 +255,7 @@ impl<'a> Externals for Runtime<'a> {
                 let result: U256 = elem_a * elem_b;
 
                 let mut bytes_result: [u8; 32] = [0; 32];
-                result.to_little_endian(&mut bytes_result);
+                result.to_big_endian(&mut bytes_result);
 
                 memory
                     .set(b_pos, &bytes_result)
@@ -291,7 +291,7 @@ impl<'a> Externals for Runtime<'a> {
                 let result: U256 = elem_a - elem_b;
 
                 let mut bytes_result: [u8; 32] = [0; 32];
-                result.to_little_endian(&mut bytes_result);
+                result.to_big_endian(&mut bytes_result);
 
                 memory
                     .set(b_pos, &bytes_result)
@@ -330,7 +330,7 @@ impl<'a> Externals for Runtime<'a> {
                 }
 
                 let mut bytes_result: [u8; 32] = [0; 32];
-                result.to_little_endian(&mut bytes_result);
+                result.to_big_endian(&mut bytes_result);
 
                 memory
                     .set(b_pos, &bytes_result)
@@ -368,7 +368,7 @@ impl<'a> Externals for Runtime<'a> {
                 let result: U256 = elem_a / elem_b;
 
                 let mut bytes_result: [u8; 32] = [0; 32];
-                result.to_little_endian(&mut bytes_result);
+                result.to_big_endian(&mut bytes_result);
 
                 memory
                     .set(b_pos, &bytes_result)
