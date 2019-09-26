@@ -440,7 +440,6 @@ export function main(): void {
       }
 
       break
-      /*
     case swap2: // 0x91
       // get stack top
       let top_slot = BignumStackElements[BignumStackTop - 1]
@@ -462,8 +461,6 @@ export function main(): void {
         top_slot[i] = temp[i]
       }
       break
-      */
-      /*
     case swap3: // 0x92
       // get stack top
       let top_slot = BignumStackElements[BignumStackTop - 1]
@@ -487,7 +484,6 @@ export function main(): void {
       }
 
       break
-      */
       /*
     case opreturn:  // 0xf3
       // pop offset
