@@ -31,6 +31,9 @@ export declare function eth2_mul256(stackTop: u32): u32;
 @external("env", "eth2_lt256")
 export declare function eth2_lt256(stackTop: u32): u32;
 
+@external("env", "eth2_div256")
+export declare function eth2_div256(stackTop: u32): u32;
+
 @external("env", "eth2_jumpi")
 export declare function eth2_jumpi(stackTop: u32, pc: i32): u32;
 
@@ -82,7 +85,6 @@ export function main(): void {
   let dt_size_ptr: usize = __alloc(4, 0)
   eth2_blockDataCopy(dt_size_ptr, data_size_offset, data_size_offset + 4)
   let dt_size: i32 = load<i32>(dt_size_ptr)
-  eth2_log(dt_size)
   
   // get data offset
   let data_offset = data_size_offset + 4
@@ -139,6 +141,7 @@ export function main(): void {
     let opcode: u8 = evm_bytecode[pc]
     pc++
 
+    eth2_log(opcode)
     switch (opcode) {
     case push1: // 0x60
       let push_val = evm_bytecode[pc]
@@ -154,7 +157,6 @@ export function main(): void {
       break
 
     case push2: // 0x61
-      eth2_log(222)
       let push_val1 = evm_bytecode[pc]
       pc++
       let push_val2 = evm_bytecode[pc]
@@ -200,32 +202,20 @@ export function main(): void {
       BignumStackTop++
       break
     case add: // 0x01
-      eth2_log(333)
       BignumStackTop = eth2_add256(BignumStackTop)
-      //let result_slot = BignumStackElements[BignumStackTop - 1]
-      //let result = result_slot[31]
-
-      //eth2_log(result)
       break
     case mul: // 0x02
-      eth2_log(444)
       BignumStackTop = eth2_mul256(BignumStackTop)
-
-      //let result_slot = BignumStackElements[BignumStackTop - 1]
-      //let result = result_slot[31]
-
-      //eth2_log(result)
       break
       /*
     case sub: // 0x03
       sub256()
       break
       */
-      /*      
     case div: // 0x04
-      div256()
+      BignumStackTop = eth2_div256(BignumStackTop)
+      
       break
-      */
       /*
     case sstore: // 0x55
       BignumStackTop = BignumStackTop - 3
@@ -258,7 +248,6 @@ export function main(): void {
       break
       */
     case mstore: // 0x52
-      eth2_log(555)
       // pop memid
       BignumStackTop--
       let memid_slot = BignumStackElements[BignumStackTop]
@@ -318,7 +307,6 @@ export function main(): void {
       break
 
     case calldatasize: // 0x36
-      eth2_log(666)
       let data_size = eth2_blockDataSize()
 
       let stack_slot = BignumStackElements[BignumStackTop]
@@ -334,7 +322,6 @@ export function main(): void {
       */
 
     case lt:      // 0x10
-      eth2_log(777)
       BignumStackTop = eth2_lt256(BignumStackTop)
       break
 
@@ -344,7 +331,6 @@ export function main(): void {
       break
       */
     case iszero: // 0x15
-      eth2_log(888)
       let result_pos = BignumStackElements[BignumStackTop]
       let elem_pos = BignumStackElements[BignumStackTop - 1]
 
@@ -377,9 +363,7 @@ export function main(): void {
       break
       */
     case jumpi: // 0x57
-      eth2_log(999)
       pc = eth2_jumpi(BignumStackTop, pc)
-      eth2_log(pc)
       BignumStackTop = BignumStackTop - 2
       break
       /*
@@ -401,7 +385,6 @@ export function main(): void {
       break
       */
     case dup2:  // 0x81
-      eth2_log(101010)
       // get value
       let value_slot = BignumStackElements[BignumStackTop - 2]
 
@@ -427,7 +410,6 @@ export function main(): void {
       BignumStackTop++
       break
       */
-      /*
     case swap1: // 0x90
       // get stack top
       let top_slot = BignumStackElements[BignumStackTop - 1]
@@ -450,7 +432,6 @@ export function main(): void {
       }
 
       break
-      */
       /*
     case swap2: // 0x91
       // get stack top
