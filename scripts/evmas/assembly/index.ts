@@ -334,10 +334,10 @@ export function main(): void {
       }
 
       BignumStackTop--
-      let res_pos = BignumStackElements[BignumStackTop]
+      let res_pos = BignumStackElements[BignumStackTop - 1]
       res_pos.fill(0, 0, 32)
 
-      if (diff)
+      if (!diff)
         res_pos[31] = 1
       break
     case iszero: // 0x15
