@@ -370,7 +370,6 @@ export function main(): void {
     case jumpdest: // 0x5b
       break
       */
-      /*
     case dup1:    // 0x80
       // get value
       let value_slot = BignumStackElements[BignumStackTop - 1]
@@ -383,7 +382,6 @@ export function main(): void {
 
       BignumStackTop++
       break
-      */
     case dup2:  // 0x81
       // get value
       let value_slot = BignumStackElements[BignumStackTop - 2]
