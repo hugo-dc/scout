@@ -63,14 +63,34 @@ export function main(): void {
 
   let BignumStackTop: i32 = 0
 
-  // TODO: pass the byte code in calldata
-  // EVM Bytecode
-  // (+ 128 64) => 192 (0xc0)
-  // (* 128 64) => 8192 (0x2000)
-  let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87, 124, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 096, 0, 128, 253, 91, 52, 128, 21, 97, 0, 75, 87, 96, 0, 128, 253, 91, 80, 97, 0, 111, 96, 4, 128, 54, 3, 96, 64, 129, 16, 21, 97, 0, 98, 87, 96, 0, 128, 253, 91, 80, 128, 53, 144, 96, 32, 1, 53, 97, 0, 129, 86, 91, 96, 64, 128, 81, 145, 130, 82, 81, 144, 129, 144, 3, 96, 32, 1, 144, 243, 91, 96, 0, 128, 91, 97, 39, 16, 129, 16, 21, 97, 1, 25, 87, 146, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 146, 96, 1, 1, 97, 0, 133, 86, 91, 80, 145, 146, 145, 80, 80, 86, 254, 161, 101, 98, 122, 122, 114, 48, 88, 32, 241, 119, 162, 139, 221, 145, 28, 48, 80, 232, 56, 92, 67, 2, 134, 171, 233, 224, 172, 166, 56, 129, 39, 238, 224, 11, 209, 57, 97, 172, 186, 106, 0, 41]
+  // get evm bytecode size
+  let bc_size_ptr: usize = __alloc(4, 0)
+  eth2_blockDataCopy(bc_size_ptr, 0, 4)
+  let bc_size: i32 = load<i32>(bc_size_ptr)
   
-  //let code_array: u8[] = [96, 128, 96, 64, 82, 96, 4, 54, 16, 97, 0, 58, 87, 124, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 96, 0, 53, 4, 99, 38, 188, 235, 89, 129, 20, 97, 0, 63, 87, 91, 96, 0, 128, 253, 91, 52, 128, 21, 97, 0, 75, 87, 96, 0, 128, 253, 91, 80, 97, 0, 111, 96, 4, 128, 54, 3, 96, 64, 129, 16, 21, 97, 0, 98, 87, 96, 0, 128, 253, 91, 80, 128, 53, 144, 96, 32, 1, 53, 97, 0, 129, 86, 91, 96, 64, 128, 81, 145, 130, 82, 81, 144, 129, 144, 3, 96, 32, 1, 144, 243, 91, 96, 0, 128, 91, 97, 39, 16, 129, 16, 21, 97, 1, 25, 87, 146, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 130, 2, 146, 96, 1, 1, 97, 0, 133, 86, 91, 80, 145, 146, 145, 80, 80, 86, 254, 161, 101, 98, 122, 122, 114, 48, 88, 32, 241, 119, 162, 139, 221, 145, 28, 48, 80, 232, 56, 92, 67, 2, 134, 171, 233, 224, 172, 166, 56, 129, 39, 238, 224, 11, 209, 57, 97, 172, 186, 106, 0, 41]
+  // get evm bytecode
+  let evm_bytecode_ptr: usize = __alloc(bc_size, 0)
+  eth2_blockDataCopy(evm_bytecode_ptr, 4, bc_size)
 
+  let evm_bytecode_buff = new ArrayBuffer(bc_size)
+  memory.copy((evm_bytecode_buff as usize), evm_bytecode_ptr, bc_size)
+
+  let evm_bytecode = Uint8Array.wrap(evm_bytecode_buff, 0, bc_size)
+
+  /*
+  // get data size
+  let data_size_offset = 4 + bc_size
+  let dt_size_ptr: usize = __alloc(4, 0)
+  eth2_blockDataCopy(dt_size_ptr, data_size_offset, data_size_offset + 4)
+  let dt_size: i32 = load<i32>(dt_size_ptr)
+  eth2_log(dt_size)
+  
+  // get data
+  let data_ptr: usize = __alloc(dt_size, 0)
+  let data_offset = data_size_offset + 4
+  eth2_blockDataCopy(data_ptr, data_offset, data_offset + dt_size)
+  */
+  
   const stop: u8 = 0x00
   const add: u8 = 0x01
   const mul: u8 = 0x02
@@ -119,13 +139,13 @@ export function main(): void {
 
   eth2_savePostStateRoot(postStateRootPtr)
 
-  while (pc < code_array.length) {
-    let opcode: u8 = code_array[pc]
+  while (pc < evm_bytecode.length) {
+    let opcode: u8 = evm_bytecode[pc]
     pc++
 
     switch (opcode) {
     case push1: // 0x60
-      let push_val = code_array[pc]
+      let push_val = evm_bytecode[pc]
       pc++
       let stack_slot = BignumStackElements[BignumStackTop]
       stack_slot.fill(0, 0, 32)
@@ -139,9 +159,9 @@ export function main(): void {
 
     case push2: // 0x61
       eth2_log(222)
-      let push_val1 = code_array[pc]
+      let push_val1 = evm_bytecode[pc]
       pc++
-      let push_val2 = code_array[pc]
+      let push_val2 = evm_bytecode[pc]
       pc++
       
       let stack_slot = BignumStackElements[BignumStackTop]
@@ -154,13 +174,13 @@ export function main(): void {
       break
 
     case push4: // 0x63
-      let push_val1 = code_array[pc]
+      let push_val1 = evm_bytecode[pc]
       pc++
-      let push_val2 = code_array[pc]
+      let push_val2 = evm_bytecode[pc]
       pc++
-      let push_val3 = code_array[pc]
+      let push_val3 = evm_bytecode[pc]
       pc++
-      let push_val4 = code_array[pc]
+      let push_val4 = evm_bytecode[pc]
       pc++
 
       let stack_slot = BignumStackElements[BignumStackTop]
@@ -177,7 +197,7 @@ export function main(): void {
       let stack_slot = BignumStackElements[BignumStackTop]
       stack_slot.fill(0, 0, 32)
       for (let i = 0; i < 29; i++) {
-        stack_slot[i+3] = code_array[pc]
+        stack_slot[i+3] = evm_bytecode[pc]
         pc++
       }
 
@@ -352,6 +372,7 @@ export function main(): void {
     case jumpi: // 0x57
       eth2_log(999)
       pc = eth2_jumpi(BignumStackTop, pc)
+      eth2_log(pc)
       BignumStackTop = BignumStackTop - 2
       break
       /*
@@ -499,7 +520,7 @@ export function main(): void {
       break
       */
     default:
-      pc = code_array.length  // unknown opcode, finish execution
+      pc = evm_bytecode.length  // unknown opcode, finish execution
       eth2_log(31337)
       break
     }
