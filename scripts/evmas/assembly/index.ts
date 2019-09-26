@@ -367,7 +367,6 @@ export function main(): void {
       pc = code_array.length     // finish execution
       break
       */
-      /*
     case jump: // 0x56
       // pop destination
       BignumStackTop--
@@ -375,7 +374,6 @@ export function main(): void {
       let dest = dest_slot[31]
       pc = dest
       break
-      */
     case jumpi: // 0x57
       pc = eth2_jumpi(BignumStackTop, pc)
       BignumStackTop = BignumStackTop - 2
