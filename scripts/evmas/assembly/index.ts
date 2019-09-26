@@ -375,7 +375,9 @@ export function main(): void {
       break
       */
     case jumpi: // 0x57
+      eth2_log(pc)
       pc = eth2_jumpi(BignumStackTop, pc)
+      eth2_log(pc)
       BignumStackTop = BignumStackTop - 2
       break
     case jumpdest: // 0x5b
@@ -505,11 +507,9 @@ export function main(): void {
       pc = code_array.length // finish execution
       break
       */
-      /*
     case revert: // 0xfd
-      pc = code_array.length      // finish execution
+      pc = evm_bytecode.length      // finish execution
       break
-      */
       /*
     case invalid:
       pc = code_array.length     // finish execution
