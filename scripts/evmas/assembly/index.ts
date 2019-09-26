@@ -381,10 +381,8 @@ export function main(): void {
       pc = eth2_jumpi(BignumStackTop, pc)
       BignumStackTop = BignumStackTop - 2
       break
-      /*
     case jumpdest: // 0x5b
       break
-      */
     case dup1:    // 0x80
       // get value
       let value_slot = BignumStackElements[BignumStackTop - 1]
@@ -523,7 +521,6 @@ export function main(): void {
     default:
       pc = evm_bytecode.length  // unknown opcode, finish execution
       eth2_log(31337)
-      eth2_log(opcode)
       break
     }
   }
