@@ -36,6 +36,46 @@ const LOG_FUNC_INDEX: usize = 14;
 static mut BignumStackOffset: u32 = 0;     // EVM
 static mut EVMMemoryStartOffset: u32 = 0;  // EVM
 
+fn get_opcode(value: u32) -> String {
+    match value {
+        0x00 => String::from("STOP"),
+        0x01 => String::from("ADD"),
+        0x02 => String::from("MUL"),
+        0x03 => String::from("SUB"),
+        0x04 => String::from("DIV"),
+        0x10 => String::from("LT"),
+        0x14 => String::from("EQ"),
+        0x15 => String::from("ISZERO"),
+        0x19 => String::from("NOT"),
+        0x34 => String::from("CALLVALUE"),
+        0x35 => String::from("CALLDATALOAD"),
+        0x36 => String::from("CALLDATASIZE"),
+        0x39 => String::from("CODECOPY"),
+        0x50 => String::from("POP"),
+        0x51 => String::from("MLOAD"),
+        0x52 => String::from("MSTORE"),
+        0x55 => String::from("SSTORE"),
+        0x56 => String::from("JUMP"),
+        0x57 => String::from("JUMPI"),
+        0x5b => String::from("JUMPDEST"),
+        0x60 => String::from("PUSH1"),
+        0x61 => String::from("PUSH2"),
+        0x62 => String::from("PUSH3"),
+        0x64 => String::from("PUSH4"),
+        0x7c => String::from("PUSH29"),
+        0x80 => String::from("DUP1"),
+        0x81 => String::from("DUP2"),
+        0x82 => String::from("DUP3"),
+        0x90 => String::from("SWAP1"),
+        0x91 => String::from("SWAP2"),
+        0x92 => String::from("SWAP3"),
+        0xf3 => String::from("RETURN"),
+        0xfd => String::from("REVERT"),
+        0xfe => String::from("INVALID"),
+        _ => String::from("UNK"),
+    }
+}
+
 struct Runtime<'a> {
     ticks_left: u32,
     memory: Option<MemoryRef>,
@@ -364,18 +404,43 @@ impl<'a> Externals for Runtime<'a> {
 
                 let cond = U256::from(bytes_cond);
 
+                println!(">>> bytes_cond: {:?}", bytes_cond);
+                println!(">>> cond: {:?}", cond);
                 if cond != U256::from(0) {
+                    println!(">>> !=");
                     let mut dest_arr: [u8; 4] = Default::default();
                     dest_arr.copy_from_slice(&bytes_dest[28..32]);
                     let dest = i32::from_be_bytes(dest_arr);
                     Ok(Some(dest.into()))
                 } else {
+                    println!(">>> ==");
                     Ok(Some(pc.into()))
                 }
             }
             LOG_FUNC_INDEX => {
                 let value: u32 = args.nth(0);
-                println!(">>> eth2_log: {}", value);
+                let BignumStackTop: u32 = args.nth(1);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let opcode = get_opcode(value);
+                println!(">>> {} 0x{:x} ({})", value, value, opcode);
+                
+                let mut i = 0;
+                while (i < BignumStackTop) {
+                    let mut elem_pos: u32 = 0;
+
+                    unsafe {
+                        elem_pos = BignumStackOffset + 32 * i;
+                    }
+
+                    let mut elem_bytes: [u8; 32] = [0; 32];
+
+                    memory
+                        .get_into(elem_pos, &mut elem_bytes)
+                        .expect("expects reading from memory to succeed");
+
+                    println!(">>> {:?}", elem_bytes);
+                    i = i + 1;
+                }
                 Ok(None)
             }
             _ => panic!("unknown function index"),
@@ -450,7 +515,7 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
                 JUMPI_FUNC_INDEX,
             ),
             "eth2_log" => FuncInstance::alloc_host(
-                Signature::new(&[ValueType::I32][..], None),
+                Signature::new(&[ValueType::I32, ValueType::I32][..], None),
                 LOG_FUNC_INDEX,
             ),
             _ => {
