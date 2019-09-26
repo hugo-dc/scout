@@ -325,11 +325,26 @@ export function main(): void {
       BignumStackTop = eth2_lt256(BignumStackTop)
       break
 
-      /*
     case eq:     // 0x14
-      eqFunc()
+      let a_pos = BignumStackElements[BignumStackTop - 1]
+      let b_pos = BignumStackElements[BignumStackTop - 2]
+
+      let diff = false
+
+      for (let i = 0; i < 32; i++) {
+        if (a_pos[i] != b_pos[i]) {
+          diff = true
+          break
+        }
+      }
+
+      BignumStackTop--
+      let res_pos = BignumStackElements[BignumStackTop]
+      res_pos.fill(0, 0, 32)
+
+      if (diff)
+        res_pos[31] = 1
       break
-      */
     case iszero: // 0x15
       let result_pos = BignumStackElements[BignumStackTop]
       let elem_pos = BignumStackElements[BignumStackTop - 1]
