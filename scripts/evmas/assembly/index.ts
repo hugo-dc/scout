@@ -223,11 +223,9 @@ export function main(): void {
       finish(result_slot.dataStart, 32)
       break
       */
-      /*
     case pop: // 0x50
       BignumStackTop--
       break
-      */
       /*
     case mload: // 0x51
       // pop memid
