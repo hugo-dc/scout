@@ -373,9 +373,7 @@ export function main(): void {
       break
       */
     case jumpi: // 0x57
-      eth2_log(pc, BignumStackTop)
       pc = eth2_jumpi(BignumStackTop, pc)
-      eth2_log(pc, BignumStackTop)
       BignumStackTop = BignumStackTop - 2
       break
     case jumpdest: // 0x5b

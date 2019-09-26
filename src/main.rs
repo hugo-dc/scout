@@ -61,7 +61,7 @@ fn get_opcode(value: u32) -> String {
         0x60 => String::from("PUSH1"),
         0x61 => String::from("PUSH2"),
         0x62 => String::from("PUSH3"),
-        0x64 => String::from("PUSH4"),
+        0x63 => String::from("PUSH4"),
         0x7c => String::from("PUSH29"),
         0x80 => String::from("DUP1"),
         0x81 => String::from("DUP2"),
