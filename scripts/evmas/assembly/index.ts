@@ -341,17 +341,21 @@ export function main(): void {
         res_pos[31] = 1
       break
     case iszero: // 0x15
-      let result_pos = BignumStackElements[BignumStackTop]
       let elem_pos = BignumStackElements[BignumStackTop - 1]
-
-      result_pos.fill(0, 0, 32)
+      let is_zero = true
 
       for (let i = 0; i < 32; i++) {
         if (elem_pos[i] != 0) {
-          result_pos[31] = 1
+          let is_zero = false
           break
         }
       }
+
+      let result_pos = BignumStackElements[BignumStackTop - 1]
+      result_pos.fill(0, 0, 32)
+
+      if (is_zero)
+        result_pos[31] = 1
       break
       /*
     case opnot: // 0x19
