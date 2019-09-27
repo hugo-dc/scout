@@ -344,7 +344,7 @@ export function main(): void {
 
       for (let i = 0; i < 32; i++) {
         if (elem_pos[i] != 0) {
-          let is_zero = false
+          is_zero = false
           break
         }
       }
