@@ -22,6 +22,9 @@ export declare function eth2_setMemoryPtr(startData: u32): void;
 @external("env", "eth2_log")
 export declare function eth2_log(value: i32, stackTop: u32): void;
 
+@external("env", "eth2_printMem")
+export declare function eth2_printMem(value: i32): void;
+
 @external("env", "eth2_add256")
 export declare function eth2_add256(stackTop: u32): u32;
 
@@ -243,6 +246,8 @@ export function main(): void {
 
       stack_slot[31] = value
 
+      eth2_printMem(10)
+
       break
     case mstore: // 0x52
       // pop memid
@@ -269,6 +274,10 @@ export function main(): void {
           mem_slot1[i] = memval_slot[i]
         }
       }
+
+      let max_mem: i32 = 10
+
+      eth2_printMem(10)
 
       break
     case callvalue: // 0x34
@@ -352,7 +361,7 @@ export function main(): void {
       let result_pos = BignumStackElements[BignumStackTop - 1]
       result_pos.fill(0, 0, 32)
 
-      if (is_zero)
+      if (is_zero == true)
         result_pos[31] = 1
       break
       /*
