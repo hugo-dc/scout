@@ -492,11 +492,11 @@ export function main(): void {
       offset = offset / 16
 
       let mem_slot = MemoryElements[offset]
-      finish(mem_slot.dataStart, length)
-      pc = code_array.length // finish execution
+      eth2_savePostStateRoot(mem_slot.dataStart)
+      pc = evm_bytecode.length   // finish execution
       break
     case revert: // 0xfd
-      pc = evm_bytecode.length      // finish execution
+      pc = evm_bytecode.length   // finish execution
       break
       /*
     case invalid:
@@ -504,7 +504,7 @@ export function main(): void {
       break
       */
     default:
-      pc = evm_bytecode.length  // unknown opcode, finish execution
+      pc = evm_bytecode.length   // unknown opcode, finish execution
       eth2_log(31337, BignumStackTop)
       break
     }

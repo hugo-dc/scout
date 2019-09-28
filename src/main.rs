@@ -215,7 +215,7 @@ impl<'a> Externals for Runtime<'a> {
                 let elem_a = U256::from(bytes_a);
                 let elem_b = U256::from(bytes_b);
 
-                let result = elem_a + elem_b;
+                let (result, ov) = elem_a.overflowing_add(elem_b);
 
                 let mut bytes_result: [u8;32] = [0;32];
                 result.to_big_endian(&mut bytes_result);
@@ -252,7 +252,7 @@ impl<'a> Externals for Runtime<'a> {
                 let elem_a = U256::from(bytes_a);
                 let elem_b = U256::from(bytes_b);
 
-                let result: U256 = elem_a * elem_b;
+                let (result, ov) =  elem_a.overflowing_mul(elem_b);
 
                 let mut bytes_result: [u8; 32] = [0; 32];
                 result.to_big_endian(&mut bytes_result);
@@ -288,7 +288,7 @@ impl<'a> Externals for Runtime<'a> {
                 let elem_a = U256::from(bytes_a);
                 let elem_b = U256::from(bytes_b);
 
-                let result: U256 = elem_a - elem_b;
+                let (result, ov) = elem_a.overflowing_sub(elem_b);
 
                 let mut bytes_result: [u8; 32] = [0; 32];
                 result.to_big_endian(&mut bytes_result);
@@ -365,7 +365,7 @@ impl<'a> Externals for Runtime<'a> {
                 let elem_a = U256::from(bytes_a);
                 let elem_b = U256::from(bytes_b);
 
-                let result: U256 = elem_a / elem_b;
+                let result = elem_a.checked_div(elem_b).unwrap();
 
                 let mut bytes_result: [u8; 32] = [0; 32];
                 result.to_big_endian(&mut bytes_result);
@@ -404,16 +404,12 @@ impl<'a> Externals for Runtime<'a> {
 
                 let cond = U256::from(bytes_cond);
 
-                println!(">>> bytes_cond: {:?}", bytes_cond);
-                println!(">>> cond: {:?}", cond);
                 if cond != U256::from(0) {
-                    println!(">>> !=");
                     let mut dest_arr: [u8; 4] = Default::default();
                     dest_arr.copy_from_slice(&bytes_dest[28..32]);
                     let dest = i32::from_be_bytes(dest_arr);
                     Ok(Some(dest.into()))
                 } else {
-                    println!(">>> ==");
                     Ok(Some(pc.into()))
                 }
             }
@@ -422,8 +418,8 @@ impl<'a> Externals for Runtime<'a> {
                 let BignumStackTop: u32 = args.nth(1);
                 let memory = self.memory.as_ref().expect("expects memory object");
                 let opcode = get_opcode(value);
-                println!(">>> {} 0x{:x} ({})", value, value, opcode);
-                
+                println!(">>> {} - {}", value, opcode);
+
                 let mut i = 0;
                 while (i < BignumStackTop) {
                     let mut elem_pos: u32 = 0;
