@@ -31,8 +31,6 @@ const SUB256_FUNC_INDEX: usize = 10;
 const LT256_FUNC_INDEX: usize = 11;
 const DIV256_FUNC_INDEX: usize = 12;
 const JUMPI_FUNC_INDEX: usize = 13;
-const LOG_FUNC_INDEX: usize = 14;
-const PRINTMEM_FUNC_INDEX: usize = 15;
 
 static mut BignumStackOffset: u32 = 0;     // EVM
 static mut EVMMemoryStartOffset: u32 = 0;  // EVM
@@ -414,58 +412,6 @@ impl<'a> Externals for Runtime<'a> {
                     Ok(Some(pc.into()))
                 }
             }
-            LOG_FUNC_INDEX => {
-                let value: u32 = args.nth(0);
-                let BignumStackTop: u32 = args.nth(1);
-                let memory = self.memory.as_ref().expect("expects memory object");
-                let opcode = get_opcode(value);
-                println!(">>> {} - {}", value, opcode);
-
-                let mut i = 0;
-                while (i < BignumStackTop) {
-                    let mut elem_pos: u32 = 0;
-
-                    unsafe {
-                        elem_pos = BignumStackOffset + 32 * i;
-                    }
-
-                    let mut elem_bytes: [u8; 32] = [0; 32];
-
-                    memory
-                        .get_into(elem_pos, &mut elem_bytes)
-                        .expect("expects reading from memory to succeed");
-
-                    println!(">>> {:?}", elem_bytes);
-                    i = i + 1;
-                }
-                Ok(None)
-            }
-            PRINTMEM_FUNC_INDEX => {
-                /*
-                let max = args.nth(0);
-                let memory = self.memory.as_ref().expect("expects memory object");
-                let mut i = 0;
-
-                println!(">>> ==============================");
-
-                while i < max {
-                    let mut elem_pos: u32 = 0;
-                    unsafe {
-                        elem_pos = EVMMemoryStartOffset + 16 * i;    
-                    }
-                    let mut elem_bytes: [u8; 16] = [0; 16];
-
-                    memory
-                        .get_into(elem_pos, &mut elem_bytes)
-                        .expect("expects reading from memory to succeed");
-
-                    println!(">>> {:?}", elem_bytes);
-                    i = i + 1;
-                }
-                println!(">>> --------------------------------");
-                */
-                Ok(None)
-            }
             _ => panic!("unknown function index"),
         }
     }
@@ -536,14 +482,6 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
                 //Signature::new(&[ValueType::I32, ValueType::I32][..], Some(ValueType::I32)),
                 Signature::new(&[ValueType::I32, ValueType::I32][..], Some(ValueType::I32)),
                 JUMPI_FUNC_INDEX,
-            ),
-            "eth2_log" => FuncInstance::alloc_host(
-                Signature::new(&[ValueType::I32, ValueType::I32][..], None),
-                LOG_FUNC_INDEX,
-            ),
-            "eth2_printMem" => FuncInstance::alloc_host(
-                Signature::new(&[ValueType::I32][..], None),
-                PRINTMEM_FUNC_INDEX,
             ),
             _ => {
                 return Err(InterpreterError::Function(format!(

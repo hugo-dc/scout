@@ -19,12 +19,6 @@ export declare function eth2_setBignumStack(startData: u32): void;
 @external("env", "eth2_setMemoryPtr")
 export declare function eth2_setMemoryPtr(startData: u32): void;
 
-@external("env", "eth2_log")
-export declare function eth2_log(value: i32, stackTop: u32): void;
-
-@external("env", "eth2_printMem")
-export declare function eth2_printMem(value: i32): void;
-
 @external("env", "eth2_add256")
 export declare function eth2_add256(stackTop: u32): u32;
 
@@ -147,7 +141,6 @@ export function main(): void {
     let opcode: u8 = evm_bytecode[pc]
     pc++
 
-    eth2_log(opcode, BignumStackTop)
     switch (opcode) {
     case push1: // 0x60
       let push_val = evm_bytecode[pc]
@@ -246,8 +239,6 @@ export function main(): void {
 
       stack_slot[31] = value
 
-      eth2_printMem(10)
-
       break
     case mstore: // 0x52
       // pop memid
@@ -276,8 +267,6 @@ export function main(): void {
       }
 
       let max_mem: i32 = 10
-
-      eth2_printMem(10)
 
       break
     case callvalue: // 0x34
@@ -514,7 +503,6 @@ export function main(): void {
       */
     default:
       pc = evm_bytecode.length   // unknown opcode, finish execution
-      eth2_log(31337, BignumStackTop)
       break
     }
   }
