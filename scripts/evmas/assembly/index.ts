@@ -129,13 +129,6 @@ export function main(): void {
   eth2_loadPreStateRoot(preStateRootPtr)
 
   let postStateRootPtr: usize = __alloc(32, 0)
-  memory.copy(postStateRootPtr, preStateRootPtr, 32)
-
-  let lastByte: u8 = load<u8>(preStateRootPtr, 31)
-
-  store<u8>(postStateRootPtr, lastByte + 1, 31)
-
-  eth2_savePostStateRoot(postStateRootPtr)
 
   while (pc < evm_bytecode.length) {
     let opcode: u8 = evm_bytecode[pc]
@@ -358,11 +351,9 @@ export function main(): void {
       notFunc()
       break
       */
-      /*
     case stop: // 0x00
-      pc = code_array.length     // finish execution
+      pc = evm_bytecode.length     // finish execution
       break
-      */
     case jump: // 0x56
       // pop destination
       BignumStackTop--
@@ -496,11 +487,9 @@ export function main(): void {
     case revert: // 0xfd
       pc = evm_bytecode.length   // finish execution
       break
-      /*
     case invalid:
-      pc = code_array.length     // finish execution
+      pc = evm_bytecode.length     // finish execution
       break
-      */
     default:
       pc = evm_bytecode.length   // unknown opcode, finish execution
       break
