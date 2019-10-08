@@ -11,9 +11,15 @@ test:
 	target/release/phase2-scout bazaar.yaml
 	target/release/phase2-scout evmas.yaml
 
-evmas: evmas-build evmas-run
+evmas-mul256: evmas-build evmas-run-mul256
 
 evmas-build:
 	cd scripts/evmas && npm run asbuild && chisel run --config chisel.toml
-evmas-run:
+
+evmas-run-mul256:
 	target/release/phase2-scout evmas.yaml
+
+evmas-add: evmas-build evmas-run-add
+
+evmas-run-add:
+	target/release/phase2-scout evmas-add.yaml
