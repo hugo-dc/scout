@@ -11,15 +11,14 @@ test:
 	target/release/phase2-scout bazaar.yaml
 	target/release/phase2-scout evmas.yaml
 
-evmas-mul256: evmas-build evmas-run-mul256
+relayer:
+	cd scripts/turbo-evmas/ && npx ts-node src/relayer/bin.ts
+	mv scripts/turbo-evmas/add11.yaml ./
 
 evmas-build:
-	cd scripts/evmas && npm run asbuild && chisel run --config chisel.toml
+	cd scripts/turbo-evmas && npx gulp && chisel run --config chisel.toml
 
-evmas-run-mul256:
-	target/release/phase2-scout evmas.yaml
+evmas-run:
+	target/release/phase2-scout add11.yaml
 
-evmas-add: evmas-build evmas-run-add
-
-evmas-run-add:
-	target/release/phase2-scout evmas-add.yaml
+evmas: evmas-build evmas-run

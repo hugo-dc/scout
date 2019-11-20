@@ -31,6 +31,8 @@ const SUB256_FUNC_INDEX: usize = 10;
 const LT256_FUNC_INDEX: usize = 11;
 const DIV256_FUNC_INDEX: usize = 12;
 const JUMPI_FUNC_INDEX: usize = 13;
+const LOG_FUNC_INDEX: usize = 14;
+const PRINTMEM_FUNC_INDEX: usize = 15;
 
 static mut BignumStackOffset: u32 = 0;     // EVM
 static mut EVMMemoryStartOffset: u32 = 0;  // EVM
@@ -168,9 +170,13 @@ impl<'a> Externals for Runtime<'a> {
 
                 // TODO: add checks for out of bounds access
                 let memory = self.memory.as_ref().expect("expects memory object");
+
+                println!("offset: {}, length: {}", offset, length);
+                
                 memory
                     .set(ptr, &self.block_data.data[offset..length])
                     .expect("expects writing to memory to succeed");
+
 
                 Ok(None)
             }
@@ -193,20 +199,19 @@ impl<'a> Externals for Runtime<'a> {
                 Ok(None)
             }
             ADD256_FUNC_INDEX => {
-                let mut BignumStackTop: u32 = args.nth(0);
                 let memory = self.memory.as_ref().expect("expects memory object");
-                let mut a_pos: u32 = 0;
-                let mut b_pos: u32 = 0;
-                unsafe {
-                    a_pos = BignumStackOffset + 32 * (BignumStackTop - 1);
-                    b_pos = BignumStackOffset + 32 * (BignumStackTop - 2);
-                }
+                
+                let a_pos = args.nth(0);
+                let b_pos = args.nth(1);
+                let result_pos = args.nth(2);
 
-                let mut bytes_a: [u8;32] = [0;32];
-                let mut bytes_b: [u8;32] = [0;32];
+                let mut bytes_a: [u8; 32] = [0;32];
+                let mut bytes_b: [u8; 32] = [0;32];
+
                 memory
                     .get_into(a_pos, &mut bytes_a)
                     .expect("expects reading from memory to succeed");
+
                 memory
                     .get_into(b_pos, &mut bytes_b)
                     .expect("expects reading from memory to succeed");
@@ -216,16 +221,14 @@ impl<'a> Externals for Runtime<'a> {
 
                 let (result, ov) = elem_a.overflowing_add(elem_b);
 
-                let mut bytes_result: [u8;32] = [0;32];
+                let mut bytes_result: [u8; 32] = [0;32];
+
                 result.to_big_endian(&mut bytes_result);
 
                 memory
-                    .set(b_pos, &bytes_result)
+                    .set(result_pos, &bytes_result)
                     .expect("expects writing to memory to succeed");
-
-                BignumStackTop = BignumStackTop - 1;
-
-                Ok(Some(BignumStackTop.into())) // Return StackTop
+                Ok(None)
             }
             MUL256_FUNC_INDEX => {
                 let mut BignumStackTop: u32 = args.nth(0);
@@ -264,22 +267,19 @@ impl<'a> Externals for Runtime<'a> {
                 Ok(Some(BignumStackTop.into()))
             }
             SUB256_FUNC_INDEX => {
-                let mut BignumStackTop: u32 = args.nth(0);
                 let memory = self.memory.as_ref().expect("expects memory object");
-                let mut a_pos: u32 = 0;
-                let mut b_pos: u32 = 0;
+                
+                let a_pos = args.nth(0);
+                let b_pos = args.nth(1);
+                let result_pos = args.nth(2);
 
-                unsafe {
-                    a_pos = BignumStackOffset + 32 * (BignumStackTop - 1);
-                    b_pos = BignumStackOffset + 32 * (BignumStackTop - 2);
-                }
-
-                let mut bytes_a: [u8; 32] = [0; 32];
-                let mut bytes_b: [u8; 32] = [0; 32];
+                let mut bytes_a: [u8; 32] = [0;32];
+                let mut bytes_b: [u8; 32] = [0;32];
 
                 memory
                     .get_into(a_pos, &mut bytes_a)
                     .expect("expects reading from memory to succeed");
+
                 memory
                     .get_into(b_pos, &mut bytes_b)
                     .expect("expects reading from memory to succeed");
@@ -289,15 +289,14 @@ impl<'a> Externals for Runtime<'a> {
 
                 let (result, ov) = elem_a.overflowing_sub(elem_b);
 
-                let mut bytes_result: [u8; 32] = [0; 32];
+                let mut bytes_result: [u8; 32] = [0;32];
+
                 result.to_big_endian(&mut bytes_result);
 
                 memory
-                    .set(b_pos, &bytes_result)
+                    .set(result_pos, &bytes_result)
                     .expect("expects writing to memory to succeed");
-
-                BignumStackTop = BignumStackTop - 1;
-                Ok(Some(BignumStackTop.into()))                
+                Ok(None)
             }
             LT256_FUNC_INDEX => {
                 let mut BignumStackTop: u32 = args.nth(0);
@@ -412,6 +411,56 @@ impl<'a> Externals for Runtime<'a> {
                     Ok(Some(pc.into()))
                 }
             }
+            LOG_FUNC_INDEX => {
+                let value: u32 = args.nth(0);
+                let BignumStackTop: u32 = args.nth(1);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let opcode = get_opcode(value);
+                println!(">>> {} - {}", value, opcode);
+
+                let mut i = 0;
+                while (i < BignumStackTop) {
+                    let mut elem_pos: u32 = 0;
+
+                    unsafe {
+                        elem_pos = BignumStackOffset + 32 * i;
+                    }
+
+                    let mut elem_bytes: [u8; 32] = [0; 32];
+
+                    memory
+                        .get_into(elem_pos, &mut elem_bytes)
+                        .expect("expects reading from memory to succeed");
+
+                    println!(">>> {:?}", elem_bytes);
+                    i = i + 1;
+                }
+                Ok(None)
+            }
+            PRINTMEM_FUNC_INDEX => {
+                let max = args.nth(0);
+                let memory = self.memory.as_ref().expect("expects memory object");
+                let mut i = 0;
+
+                println!(">>> ==============================");
+
+                while i < max {
+                    let mut elem_pos: u32 = 0;
+                    unsafe {
+                        elem_pos = EVMMemoryStartOffset + 16 * i;    
+                    }
+                    let mut elem_bytes: [u8; 16] = [0; 16];
+
+                    memory
+                        .get_into(elem_pos, &mut elem_bytes)
+                        .expect("expects reading from memory to succeed");
+
+                    println!(">>> {:?}", elem_bytes);
+                    i = i + 1;
+                }
+                println!(">>> --------------------------------");
+                Ok(None)
+            }
             _ => panic!("unknown function index"),
         }
     }
@@ -459,7 +508,7 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
                 SETMEMPTR_FUNC_INDEX,
             ),
             "eth2_add256" => FuncInstance::alloc_host(
-                Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
+                Signature::new(&[ValueType::I32, ValueType::I32, ValueType::I32][..], None),
                 ADD256_FUNC_INDEX,
             ),
             "eth2_mul256" => FuncInstance::alloc_host(
@@ -467,7 +516,9 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
                 MUL256_FUNC_INDEX,
             ),
             "eth2_sub256" => FuncInstance::alloc_host(
-                Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
+                //Signature::new(&[ValueType::I32][..], Some(ValueType::I32)),
+                // a, b, result
+                Signature::new(&[ValueType::I32, ValueType::I32, ValueType::I32][..], None),
                 SUB256_FUNC_INDEX,
             ),
             "eth2_lt256" => FuncInstance::alloc_host(
@@ -482,6 +533,14 @@ impl<'a> ModuleImportResolver for RuntimeModuleImportResolver {
                 //Signature::new(&[ValueType::I32, ValueType::I32][..], Some(ValueType::I32)),
                 Signature::new(&[ValueType::I32, ValueType::I32][..], Some(ValueType::I32)),
                 JUMPI_FUNC_INDEX,
+            ),
+            "eth2_log" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32, ValueType::I32][..], None),
+                LOG_FUNC_INDEX,
+            ),
+            "eth2_printMem" => FuncInstance::alloc_host(
+                Signature::new(&[ValueType::I32][..], None),
+                PRINTMEM_FUNC_INDEX,
             ),
             _ => {
                 return Err(InterpreterError::Function(format!(
